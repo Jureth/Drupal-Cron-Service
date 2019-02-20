@@ -1,0 +1,6 @@
+services:
+  cron_service.manager:
+    class: \Drupal\cron_service\CronTaskManager
+    arguments: ['@state', '@logger.channel.cron']
+    tags:
+      - { name: service_collector }

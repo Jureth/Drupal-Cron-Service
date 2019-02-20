@@ -1,0 +1,19 @@
+{
+  "name": "drupal/cron_service",
+  "description": "Executes tagged services from hook_cron() with basic scheduling functionality",
+  "type": "drupal-module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Yuri Minin",
+      "role": "Maintainer",
+      "email": "J.Jureth@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "drupal/core": "^8"
+  },
+  "require-dev": {
+  }
+}
