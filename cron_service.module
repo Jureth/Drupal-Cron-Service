@@ -1,8 +1,9 @@
 <?php
+
 /**
-* @file
-* A description of what your module does.
-*/
+ * @file
+ * A description of what your module does.
+ */
 
 /**
  * Implements hook_cron().
