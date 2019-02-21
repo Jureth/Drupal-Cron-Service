@@ -3,4 +3,4 @@ services:
     class: \Drupal\cron_service\CronTaskManager
     arguments: ['@state', '@logger.channel.cron']
     tags:
-      - { name: service_collector }
+      - { name: service_collector, tag: cron_service }
