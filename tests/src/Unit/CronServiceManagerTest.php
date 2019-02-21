@@ -4,27 +4,27 @@ namespace Drupal\Tests\cron_service\Unit;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\State\StateInterface;
-use Drupal\cron_service\CronTaskInterface;
-use Drupal\cron_service\CronTaskManager;
-use Drupal\cron_service\ScheduledCronTaskInterface;
-use Drupal\cron_service\TimeControllingCronTaskInterface;
+use Drupal\cron_service\CronServiceInterface;
+use Drupal\cron_service\CronServiceManager;
+use Drupal\cron_service\ScheduledCronServiceInterface;
+use Drupal\cron_service\TimeControllingCronServiceInterface;
 use Drupal\Tests\UnitTestCase;
 
 /**
  * Interface combines all the testing interfaces.
  */
-interface CombinedInterface extends TimeControllingCronTaskInterface, ScheduledCronTaskInterface {
+interface CombinedInterface extends TimeControllingCronServiceInterface, ScheduledCronServiceInterface {
 
 }
 
 /**
- * BaseCronTask tests.
+ * BaseCronService tests.
  *
  * @group cron_service
  *
- * @coversDefaultClass \Drupal\cron_service\CronTaskManager
+ * @coversDefaultClass \Drupal\cron_service\CronServiceManager
  */
-class CronTaskManagerTest extends UnitTestCase {
+class CronServiceManagerTest extends UnitTestCase {
 
   /**
    * Service injection.
@@ -54,31 +54,31 @@ class CronTaskManagerTest extends UnitTestCase {
   }
 
   /**
-   * Cron task mocks factory.
+   * Cron service mocks factory.
    *
    * @param string $interface
-   *   Task interface.
+   *   Service interface.
    *
-   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\cron_service\CronTaskInterface
-   *   Mocked cron task.
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\cron_service\CronServiceInterface
+   *   Mocked cron service.
    */
-  protected function getTask(string $interface = CronTaskInterface::class) {
+  protected function getService(string $interface = CronServiceInterface::class) {
     return $this
       ->getMockBuilder($interface)
       ->getMock();
   }
 
   /**
-   * Cron task processor factory.
+   * Cron service processor factory.
    *
    * @param array|null $methods
    *   Methods to mock.
    *
-   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\cron_service\CronTaskManager
+   * @return \PHPUnit\Framework\MockObject\MockObject|\Drupal\cron_service\CronServiceManager
    *   Mocked test object.
    */
   protected function getTestObject(array $methods = NULL) {
-    return $this->getMockBuilder(CronTaskManager::class)
+    return $this->getMockBuilder(CronServiceManager::class)
       ->setConstructorArgs([
         $this->stateSvc,
         $this->logger,
@@ -96,7 +96,7 @@ class CronTaskManagerTest extends UnitTestCase {
     $count = random_int(1, 8);
     for ($i = 0; $i < $count; $i++) {
       $handlers[] = [
-        $this->getTask(),
+        $this->getService(),
         $this->getRandomGenerator()->name(8, TRUE),
       ];
     }
@@ -134,7 +134,7 @@ class CronTaskManagerTest extends UnitTestCase {
   }
 
   /**
-   * Tests that cron task executes the executor when force flag is set.
+   * Tests that cron manager executes the service when force flag is set.
    */
   public function testForceExecutionIgnoresEverything() {
     // Set time to past.
@@ -143,27 +143,27 @@ class CronTaskManagerTest extends UnitTestCase {
       ->method('get')
       ->willReturn(time() + 86400);
 
-    $tasks = [
-      'id1' => $this->getTask(),
-      'id2' => $this->getTask(TimeControllingCronTaskInterface::class),
-      'id3' => $this->getTask(ScheduledCronTaskInterface::class),
-      'id4' => $this->getTask(CombinedInterface::class),
+    $services = [
+      'id1' => $this->getService(),
+      'id2' => $this->getService(TimeControllingCronServiceInterface::class),
+      'id3' => $this->getService(ScheduledCronServiceInterface::class),
+      'id4' => $this->getService(CombinedInterface::class),
     ];
-    $tasks['id2']->method('shouldRunNow')->willReturn(FALSE);
-    $tasks['id4']->method('shouldRunNow')->willReturn(FALSE);
+    $services['id2']->method('shouldRunNow')->willReturn(FALSE);
+    $services['id4']->method('shouldRunNow')->willReturn(FALSE);
 
     $test_object = $this->getTestObject();
-    foreach ($tasks as $id => $task) {
-      $task->expects(self::once())->method('execute')->willReturn(TRUE);
+    foreach ($services as $id => $service) {
+      $service->expects(self::once())->method('execute')->willReturn(TRUE);
 
-      $test_object->addHandler($task, $id);
+      $test_object->addHandler($service, $id);
       // Force execution.
       $test_object->executeHandler($id, TRUE);
     }
   }
 
   /**
-   * Tests that cron task executes when time has come with updating state.
+   * Tests that cron service executes when time has come with updating state.
    *
    * Instead of creating a mock with set of expectations. We simple create a
    * fake but working StateInterface implementation and check data is kept
@@ -172,55 +172,55 @@ class CronTaskManagerTest extends UnitTestCase {
   public function testExecutionTimeIsStoredInState() {
     // Value for checking the state setter.
     $next_run_time = random_int(0, 10000);
-    $task_name = $this->randomMachineName();
+    $svc_name = $this->randomMachineName();
     $this->stateSvc = new StateMock();
 
-    $task = $this->getTask(ScheduledCronTaskInterface::class);
-    $task->expects(self::once())
+    $svc = $this->getService(ScheduledCronServiceInterface::class);
+    $svc->expects(self::once())
       ->method('getNextExecutionTime')
       ->willReturn($next_run_time);
 
     $test_object = $this->getTestObject();
-    $test_object->addHandler($task, $task_name);
+    $test_object->addHandler($svc, $svc_name);
     $test_object->execute();
 
     self::assertEquals(
       $next_run_time,
-      $test_object->getScheduledCronRunTime($task_name)
+      $test_object->getScheduledCronRunTime($svc_name)
     );
 
     $test_object = $this->getTestObject();
-    $test_object->addHandler($task, $task_name);
+    $test_object->addHandler($svc, $svc_name);
     self::assertEquals(
       $next_run_time,
-      $test_object->getScheduledCronRunTime($task_name)
+      $test_object->getScheduledCronRunTime($svc_name)
     );
 
   }
 
   /**
-   * Test executing task when time is come.
+   * Test executing service when time is come.
    */
-  public function testScheduledTasksMustBeExecutedWhenItsTime() {
-    $task = $this->getTask(ScheduledCronTaskInterface::class);
-    $task->expects(self::once())
+  public function testScheduledServicesMustBeExecutedWhenItsTime() {
+    $svc = $this->getService(ScheduledCronServiceInterface::class);
+    $svc->expects(self::once())
       ->method('execute')
       ->willReturn(TRUE);
 
     // Combined should also be executed when it allows to.
-    $task2 = $this->getTask(CombinedInterface::class);
-    $task2->expects(self::once())
+    $svc2 = $this->getService(CombinedInterface::class);
+    $svc2->expects(self::once())
       ->method('execute')
       ->willReturn(TRUE);
-    $task2->expects(self::any())
+    $svc2->expects(self::any())
       ->method('shouldRunNow')
       ->willReturn(TRUE);
 
-    $task3 = $this->getTask(CombinedInterface::class);
-    $task3->expects(self::never())
+    $svc3 = $this->getService(CombinedInterface::class);
+    $svc3->expects(self::never())
       ->method('execute')
       ->willReturn(TRUE);
-    $task3->expects(self::any())
+    $svc3->expects(self::any())
       ->method('shouldRunNow')
       ->willReturn(FALSE);
 
@@ -235,28 +235,28 @@ class CronTaskManagerTest extends UnitTestCase {
       ->withAnyParameters()
       ->willReturn(0);
 
-    $test_object->addHandler($task, 'task_1');
-    $test_object->addHandler($task2, 'task_2');
-    $test_object->addHandler($task3, 'task_3');
+    $test_object->addHandler($svc, 'task_1');
+    $test_object->addHandler($svc2, 'task_2');
+    $test_object->addHandler($svc3, 'task_3');
     $test_object->execute();
 
   }
 
   /**
-   * Tests that cron task skips the execution when time is not come.
+   * Tests that cron service skips the execution when time is not come.
    */
-  public function testScheduledTasksMustNotBeExecutedBeforeTheirTime() {
-    $task = $this->getTask(ScheduledCronTaskInterface::class);
-    $task->expects(self::never())
+  public function testScheduledServiceMustNotBeExecutedBeforeTheirTime() {
+    $service = $this->getService(ScheduledCronServiceInterface::class);
+    $service->expects(self::never())
       ->method('execute')
       ->willReturn(TRUE);
 
     // Combined should allow executing but not be actually executed.
-    $task2 = $this->getTask(CombinedInterface::class);
-    $task2->expects(self::never())
+    $service2 = $this->getService(CombinedInterface::class);
+    $service2->expects(self::never())
       ->method('execute')
       ->willReturn(TRUE);
-    $task2->expects(self::any())
+    $service2->expects(self::any())
       ->method('shouldRunNow')
       ->willReturn(TRUE);
 
@@ -265,33 +265,33 @@ class CronTaskManagerTest extends UnitTestCase {
       ->method('getScheduledCronRunTime')
       ->willReturn(time() + 86400);
 
-    $test_object->addHandler($task, 'task_1');
-    $test_object->addHandler($task2, 'task_2');
+    $test_object->addHandler($service, 'service_1');
+    $test_object->addHandler($service2, 'service_2');
     $test_object->execute();
   }
 
   /**
-   * Tests working with time controlling tasks.
+   * Tests working with time controlling services.
    */
-  public function testItRespectsTimeControllingTasks() {
-    $task1 = $this->getTask(TimeControllingCronTaskInterface::class);
-    $task1->expects(self::atLeastOnce())
+  public function testItRespectsTimeControllingServices() {
+    $svc1 = $this->getService(TimeControllingCronServiceInterface::class);
+    $svc1->expects(self::atLeastOnce())
       ->method('shouldRunNow')
       ->willReturn(TRUE);
-    $task1
+    $svc1
       ->expects(self::once())
       ->method('execute');
 
-    $task2 = $this->getTask(TimeControllingCronTaskInterface::class);
-    $task2->expects(self::atLeastOnce())
+    $svc2 = $this->getService(TimeControllingCronServiceInterface::class);
+    $svc2->expects(self::atLeastOnce())
       ->method('shouldRunNow')
       ->willReturn(FALSE);
-    $task2->expects(self::never())
+    $svc2->expects(self::never())
       ->method('execute');
 
     $test_object = $this->getTestObject();
-    $test_object->addHandler($task1, 'some_task');
-    $test_object->addHandler($task2, 'some_other_task');
+    $test_object->addHandler($svc1, 'some_task');
+    $test_object->addHandler($svc2, 'some_other_task');
     $test_object->execute();
   }
 
@@ -301,9 +301,9 @@ class CronTaskManagerTest extends UnitTestCase {
   public function testForceNextRunWorks() {
     $this->stateSvc = new StateMock();
 
-    $task_name = $this->randomMachineName();
-    $task = $this->getTask();
-    $task->expects(self::once())
+    $svc_name = $this->randomMachineName();
+    $svc = $this->getService();
+    $svc->expects(self::once())
       ->method('execute');
 
     $test_object = $this->getTestObject(['getScheduledCronRunTime']);
@@ -312,10 +312,10 @@ class CronTaskManagerTest extends UnitTestCase {
       ->method('getScheduledCronRunTime')
       ->willReturn(time() + 86400);
 
-    $test_object->addHandler($task, $task_name);
-    self::assertFalse($test_object->shouldRunNow($task_name));
-    $test_object->forceNextExecution($task_name);
-    self::assertTrue($test_object->shouldRunNow($task_name));
+    $test_object->addHandler($svc, $svc_name);
+    self::assertFalse($test_object->shouldRunNow($svc_name));
+    $test_object->forceNextExecution($svc_name);
+    self::assertTrue($test_object->shouldRunNow($svc_name));
     $test_object->execute();
   }
 

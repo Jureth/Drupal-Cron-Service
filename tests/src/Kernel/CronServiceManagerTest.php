@@ -2,15 +2,15 @@
 
 namespace Drupal\Tests\cron_service\Kernel;
 
-use Drupal\cron_service\CronTaskManagerInterface;
+use Drupal\cron_service\CronServiceManagerInterface;
 use Drupal\KernelTests\KernelTestBase;
 
 /**
- * Tests that tasks processor is integrated in Drupal.
+ * Tests that service manager is integrated in Drupal.
  *
  * @group cron_service
  */
-class CronTaskManagerTest extends KernelTestBase {
+class CronServiceManagerTest extends KernelTestBase {
 
   static protected $modules = ['cron_service'];
 
@@ -18,14 +18,14 @@ class CronTaskManagerTest extends KernelTestBase {
    * Tests the service exists.
    */
   public function testServiceExists() {
-    self::assertInstanceOf(CronTaskManagerInterface::class, $this->container->get('cron_service.manager'));
+    self::assertInstanceOf(CronServiceManagerInterface::class, $this->container->get('cron_service.manager'));
   }
 
   /**
    * Test that hook_cron executes the service.
    */
   public function testCronExecutesTheService() {
-    $test_object = $this->getMockBuilder(CronTaskManagerInterface::class)
+    $test_object = $this->getMockBuilder(CronServiceManagerInterface::class)
       ->disableOriginalConstructor()
       ->getMock();
     $test_object->expects(self::atLeastOnce())

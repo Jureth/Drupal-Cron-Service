@@ -3,14 +3,14 @@
 namespace Drupal\cron_service;
 
 /**
- * Cron tasks processor.
+ * Cron services manager.
  *
- * Collects all the services with 'cron_service.cron' tag, checks their scheduled
+ * Collects all the services with 'cron_service' tag, checks their scheduled
  * time to execute and executes all that should be executed now.
  *
  * @package Drupal\cron_service
  */
-interface CronTaskManagerInterface {
+interface CronServiceManagerInterface {
 
   /**
    * Executes handler by id.
@@ -36,14 +36,14 @@ interface CronTaskManagerInterface {
   public function execute();
 
   /**
-   * Adds service to tasks list.
+   * Adds service to services list.
    *
-   * @param \Drupal\cron_service\CronTaskInterface $task
+   * @param \Drupal\cron_service\CronServiceInterface $instance
    *   Service to add.
    * @param string $id
    *   Service id.
    */
-  public function addHandler(CronTaskInterface $task, string $id);
+  public function addHandler(CronServiceInterface $instance, string $id);
 
   /**
    * Returns next execution time.
@@ -57,7 +57,7 @@ interface CronTaskManagerInterface {
   public function getScheduledCronRunTime(string $id): int;
 
   /**
-   * Returns true if the task can be executed.
+   * Returns true if the service can be executed.
    *
    * @param string $id
    *   Handler id.
@@ -68,13 +68,13 @@ interface CronTaskManagerInterface {
   public function shouldRunNow(string $id): bool;
 
   /**
-   * Sets to force next execution of the task.
+   * Sets to force next execution of the service.
    *
-   * It doesn't immediately executes the task but it forces to bypass all the
+   * It doesn't immediately executes the service but it forces to bypass all the
    * schedule checks on the next run.
    *
    * @param string $id
-   *   Task id.
+   *   Service id.
    */
   public function forceNextExecution(string $id);
 

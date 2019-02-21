@@ -6,9 +6,9 @@ use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\State\StateInterface;
 
 /**
- * Collects cron tasks, manages their schedule an executes them on time.
+ * Collects cron services, manages their schedule an executes them on time.
  */
-class CronTaskManager implements CronTaskManagerInterface {
+class CronServiceManager implements CronServiceManagerInterface {
 
   /**
    * Injected state service.
@@ -25,14 +25,14 @@ class CronTaskManager implements CronTaskManagerInterface {
   protected $log;
 
   /**
-   * Task services.
+   * Services list.
    *
-   * @var \Drupal\cron_service\CronTaskInterface[]
+   * @var \Drupal\cron_service\CronServiceInterface[]
    */
   protected $handlers = [];
 
   /**
-   * CronProcessor constructor.
+   * CronServiceManager constructor.
    *
    * @param \Drupal\Core\State\StateInterface $state
    *   Drupal State.
@@ -47,8 +47,8 @@ class CronTaskManager implements CronTaskManagerInterface {
   /**
    * {@inheritdoc}
    */
-  public function addHandler(CronTaskInterface $task, string $id) {
-    $this->handlers[$id] = $task;
+  public function addHandler(CronServiceInterface $instance, string $id) {
+    $this->handlers[$id] = $instance;
   }
 
   /**
@@ -64,7 +64,7 @@ class CronTaskManager implements CronTaskManagerInterface {
    * Stores the value in a persistent storage.
    *
    * @param string $id
-   *   Task id.
+   *   Service id.
    * @param string $name
    *   Value name.
    * @param mixed $value
@@ -79,7 +79,7 @@ class CronTaskManager implements CronTaskManagerInterface {
    * Retrieves a value from a persistent storage.
    *
    * @param string $id
-   *   Task id.
+   *   Service id.
    * @param string $name
    *   Value name.
    * @param mixed $default
@@ -103,13 +103,13 @@ class CronTaskManager implements CronTaskManagerInterface {
    *   Unix timestamp.
    */
   public function getScheduledCronRunTime(string $id): int {
-    return $this->handlers[$id] instanceof ScheduledCronTaskInterface
+    return $this->handlers[$id] instanceof ScheduledCronServiceInterface
       ? (int) $this->getValue($id, 'schedule', 0)
       : 0;
   }
 
   /**
-   * Returns true if the task can be executed.
+   * Returns true if the service can be executed.
    *
    * @param string $id
    *   Handler id.
@@ -122,7 +122,7 @@ class CronTaskManager implements CronTaskManagerInterface {
       return TRUE;
     }
     $result = $this->getScheduledCronRunTime($id) <= time();
-    if ($this->handlers[$id] instanceof TimeControllingCronTaskInterface) {
+    if ($this->handlers[$id] instanceof TimeControllingCronServiceInterface) {
       $result = $result && $this->handlers[$id]->shouldRunNow();
     }
     return $result;
@@ -159,7 +159,7 @@ class CronTaskManager implements CronTaskManagerInterface {
    *   Handler Id.
    */
   protected function scheduleNextRunTime(string $id) {
-    if ($this->handlers[$id] instanceof ScheduledCronTaskInterface) {
+    if ($this->handlers[$id] instanceof ScheduledCronServiceInterface) {
       $next = $this->handlers[$id]->getNextExecutionTime();
       $this->storeValue($id, 'schedule', $next);
       // For unknown reason cache invalidation doesn't work on calling set()
@@ -170,36 +170,36 @@ class CronTaskManager implements CronTaskManagerInterface {
   }
 
   /**
-   * Sets to force next execution of the task.
+   * Sets to force next execution of the service.
    *
-   * It doesn't immediately executes the task but it forces to bypass all the
+   * It doesn't immediately executes the service but it forces to bypass all the
    * schedule checks on the next run.
    *
    * @param string $id
-   *   Task id.
+   *   Service id.
    */
   public function forceNextExecution(string $id) {
     $this->storeValue($id, 'forced', TRUE);
   }
 
   /**
-   * Check whether the task execution was forced or not.
+   * Check whether the service execution was forced or not.
    *
    * @param string $id
-   *   Task id.
+   *   Service id.
    *
    * @return bool
-   *   TRUE if the task execution was forced.
+   *   TRUE if the service execution was forced.
    */
   protected function isForced(string $id): bool {
     return (bool) $this->getValue($id, 'forced', FALSE);
   }
 
   /**
-   * Resets force flag for the task.
+   * Resets force flag for the service.
    *
    * @param string $id
-   *   Task id.
+   *   Service id.
    */
   protected function resetForceNextExecution(string $id) {
     $this->storeValue($id, 'forced', FALSE);
