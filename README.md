@@ -4,6 +4,17 @@
 The module provides a service which executes on every hook_cron() and calls to 
 execute() method for every other service with `cron_service` tag.
 
+## Usage
+The simpliest way to use it is to add `cron_service` tag to your service:
+```yml
+services:
+  your_service_name:
+    class: \Drupal\your_module\your_class
+    tags: [ { name: cron_service } ]
+```
+And be sure that your_class implements at least
+`\Drupal\cron_service\CronServiceInterface`
+
 ## API
 
 ### Interfaces
