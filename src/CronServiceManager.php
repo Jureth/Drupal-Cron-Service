@@ -135,11 +135,11 @@ class CronServiceManager implements CronServiceManagerInterface {
   public function executeHandler(string $id, $force = FALSE): bool {
     if (isset($this->handlers[$id])) {
       if ($force || $this->shouldRunNow($id)) {
-        $this->log->info($this->t('Start executing @id', ['@id' => $id]);
+        $this->log->info($this->t('Start executing @id', ['@id' => $id]));
         $this->handlers[$id]->execute();
         $this->scheduleNextRunTime($id);
         $this->resetForceNextExecution($id);
-        $this->log->debug($this->t('@id finished executing', ['@id' => $id]);
+        $this->log->debug($this->t('@id finished executing', ['@id' => $id]));
         return TRUE;
       }
       else {
