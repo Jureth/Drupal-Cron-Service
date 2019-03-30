@@ -1,10 +1,31 @@
-# Cron Service
+# CRON SERVICE
 
-## Description
+## INTRODUCTION
+However Drupal 8 allows a developer to implement cron related code by using
+workers, they still have limited functionality and the most common issue here -
+they don't provide any control when they should or should not run and don't
+allow a developer to run tasks from other parts of the project. The hook_cron()
+also doesn't provide anything like that and also forces developers to write code
+in functions the .module file which makes unit testing a bit harder. This module
+allows developers to get rid of plenty cron hooks from their code and makes
+control of jobs executing schedule a bit easier.
+
+## DESCRIPTION
 The module provides a service which executes on every hook_cron() and calls to 
 execute() method for every other service with `cron_service` tag.
 
-## Usage
+#REQUIREMENTS
+Drupal core. This module uses standard hook_cron() and symfony service container
+for work.
+
+#INSTALLATION
+`composer require drupal/cron_service` or other standard way of installing a
+drupal module
+
+#CONFIGURATION
+No configuration required. Simply create your own service and it will work.
+
+## USAGE
 The simpliest way to use it is to add `cron_service` tag to your service:
 ```yml
 services:
