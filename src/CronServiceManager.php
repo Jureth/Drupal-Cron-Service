@@ -151,7 +151,7 @@ class CronServiceManager implements CronServiceManagerInterface {
       }
     }
     else {
-      $this->log->warning($this->t('Attempted to execute non existing cron handler'), ['id' => $id]);
+      $this->log->warning($this->t('Attempted to execute non existing cron handler with id @id', ['@id' => $id]));
       return FALSE;
     }
   }
