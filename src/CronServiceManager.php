@@ -4,11 +4,14 @@ namespace Drupal\cron_service;
 
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\Core\State\StateInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Collects cron services, manages their schedule an executes them on time.
  */
 class CronServiceManager implements CronServiceManagerInterface {
+
+  use StringTranslationTrait;
 
   /**
    * Injected state service.
@@ -103,9 +106,7 @@ class CronServiceManager implements CronServiceManagerInterface {
    *   Unix timestamp.
    */
   public function getScheduledCronRunTime(string $id): int {
-    return $this->handlers[$id] instanceof ScheduledCronServiceInterface
-      ? (int) $this->getValue($id, 'schedule', 0)
-      : 0;
+    return $this->handlers[$id] instanceof ScheduledCronServiceInterface ? (int) $this->getValue($id, 'schedule', 0) : 0;
   }
 
   /**
@@ -134,20 +135,23 @@ class CronServiceManager implements CronServiceManagerInterface {
   public function executeHandler(string $id, $force = FALSE): bool {
     if (isset($this->handlers[$id])) {
       if ($force || $this->shouldRunNow($id)) {
-        $this->log->info('Start executing ' . $id);
+        $this->log->info($this->t('Start executing @id', ['@id' => $id]);
         $this->handlers[$id]->execute();
         $this->scheduleNextRunTime($id);
         $this->resetForceNextExecution($id);
-        $this->log->debug($id . ' finished executing');
+        $this->log->debug($this->t('@id finished executing', ['@id' => $id]);
         return TRUE;
       }
       else {
-        $this->log->debug(sprintf('Skip execution of %s until %s', $id, date('c', $this->getScheduledCronRunTime($id))));
+        $this->log->debug($this->t('Skip execution of @id until @date', [
+          '@id' => $id,
+          '@date' => date('c', $this->getScheduledCronRunTime($id)),
+        ]));
         return FALSE;
       }
     }
     else {
-      $this->log->warning('Attempted to execute non existing cron handler', ['id' => $id]);
+      $this->log->warning($this->t('Attempted to execute non existing cron handler'), ['id' => $id]);
       return FALSE;
     }
   }
@@ -165,7 +169,7 @@ class CronServiceManager implements CronServiceManagerInterface {
       // For unknown reason cache invalidation doesn't work on calling set()
       // which causes shouldRunNow() return the wrong value for some time.
       $this->state->resetCache();
-      $this->log->debug(sprintf('Next run is set to %s server time', date('r', $next)));
+      $this->log->debug($this->t('Next run is set to @date server time', ['@date' => date('r', $next)]));
     }
   }
 
