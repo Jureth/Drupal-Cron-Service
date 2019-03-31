@@ -78,13 +78,15 @@ class CronServiceManagerTest extends UnitTestCase {
    *   Mocked test object.
    */
   protected function getTestObject(array $methods = NULL) {
-    return $this->getMockBuilder(CronServiceManager::class)
+    $mock = $this->getMockBuilder(CronServiceManager::class)
       ->setConstructorArgs([
         $this->stateSvc,
         $this->logger,
       ])
       ->setMethods($methods)
       ->getMock();
+    $mock->setStringTranslation($this->getStringTranslationStub());
+    return $mock;
   }
 
   /**
