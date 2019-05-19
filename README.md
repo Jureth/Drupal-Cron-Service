@@ -30,12 +30,44 @@ The simpliest way to use it is to add `cron_service` tag to your service:
 ```yml
 services:
   your_service_name:
-    class: \Drupal\your_module\your_class
+    class: \Drupal\your_module\YourClass
     tags: [ { name: cron_service } ]
 ```
 And be sure that your_class implements at least
 `\Drupal\cron_service\CronServiceInterface`
 
+For example:
+```php
+use Drupal\cron_service\ScheduledCronServiceInterface;
+use Drupal\cron_service\TimeControllingCronServiceInterface;
+
+class YourClass implements ScheduledCronServiceInterface, TimeControllingCronServiceInterface {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function execute() {
+    \Drupal::logger('cron')->debug('Doing stuff');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getNextExecutionTime(): int {
+    // Next run will be tommorrow.
+    return time() + 86400;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function shouldRunNow(): bool {
+    // Let the coin decide, should it run or not.
+    return rand(0, 1) > 0;
+  }
+
+}
+```
 ## API
 
 ### Interfaces
