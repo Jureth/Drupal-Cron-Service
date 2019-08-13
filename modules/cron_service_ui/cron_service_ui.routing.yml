@@ -1,0 +1,15 @@
+cron_service_ui.services.overview:
+  path: '/admin/config/system/cron/services'
+  defaults:
+    _controller: '\Drupal\cron_service_ui\Controller\ServiceListController::overview'
+    _title: 'Services'
+  requirements:
+    _permission: 'access cron service ui'
+
+cron_service_ui.service.force:
+  path: '/admin/config/system/cron/services/{id}/force'
+  defaults:
+    _form: '\Drupal\cron_service_ui\Form\ForceServiceForm'
+    _title: 'Force execution on the next Cron run'
+  requirements:
+    _permission: 'access cron service ui'

@@ -1,0 +1,7 @@
+name: 'Cron Service UI'
+type: module
+description: 'Provides UI for the Cron Service module.'
+dependencies:
+  - cron_service:cron_service
+core: '8.x'
+php: 7.0

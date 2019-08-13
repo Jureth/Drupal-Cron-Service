@@ -1,0 +1,9 @@
+cron_service_ui.system.cron:
+  route_name: system.cron_settings
+  base_route: system.cron_settings
+  title: Settings
+
+cron_service_ui.services.overview:
+  route_name: cron_service_ui.services.overview
+  base_route: system.cron_settings
+  title: Services

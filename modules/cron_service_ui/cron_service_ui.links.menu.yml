@@ -1,0 +1,5 @@
+cron_service_ui.services.overview:
+  title: 'Services'
+  route_name: cron_service_ui.services.overview
+  description: 'Cron services management'
+  parent: system.cron_settings

@@ -1,0 +1,4 @@
+access cron service ui:
+  title: 'Access Cron Service UI'
+  description: 'View cron services, force immediate execution, etc.'
+  restrict access: true
