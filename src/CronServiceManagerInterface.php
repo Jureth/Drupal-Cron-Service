@@ -46,6 +46,14 @@ interface CronServiceManagerInterface {
   public function addHandler(CronServiceInterface $instance, string $id);
 
   /**
+   * Returns list of registered services names.
+   *
+   * @return iterable
+   *   Array of service names.
+   */
+  public function getHandlerIds(): iterable;
+
+  /**
    * Returns next execution time.
    *
    * @param string $id
@@ -77,5 +85,16 @@ interface CronServiceManagerInterface {
    *   Service id.
    */
   public function forceNextExecution(string $id);
+
+  /**
+   * Check whether the service execution was forced or not.
+   *
+   * @param string $id
+   *   Service id.
+   *
+   * @return bool
+   *   TRUE if the service execution was forced.
+   */
+  public function isForced(string $id): bool;
 
 }

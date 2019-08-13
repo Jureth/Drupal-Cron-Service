@@ -55,6 +55,13 @@ class CronServiceManager implements CronServiceManagerInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getHandlerIds(): iterable {
+    return array_keys($this->handlers);
+  }
+
+  /**
    * Executes all the handlers.
    */
   public function execute() {
@@ -195,7 +202,7 @@ class CronServiceManager implements CronServiceManagerInterface {
    * @return bool
    *   TRUE if the service execution was forced.
    */
-  protected function isForced(string $id): bool {
+  public function isForced(string $id): bool {
     return (bool) $this->getValue($id, 'forced', FALSE);
   }
 

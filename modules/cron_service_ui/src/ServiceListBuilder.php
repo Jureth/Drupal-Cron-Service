@@ -3,7 +3,6 @@
 namespace Drupal\cron_service_ui;
 
 use Drupal\Core\Datetime\DateFormatterInterface;
-use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\cron_service\CronServiceInterface;
@@ -17,25 +16,11 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
   use StringTranslationTrait;
 
   /**
-   * The list of cron services.
-   *
-   * @var \Drupal\cron_service\CronServiceInterface[]
-   */
-  protected $handlers = [];
-
-  /**
    * The cron service manager.
    *
    * @var \Drupal\cron_service\CronServiceManagerInterface
    */
   protected $cronServiceManager;
-
-  /**
-   * The state service.
-   *
-   * @var \Drupal\Core\State\StateInterface
-   */
-  protected $state;
 
   /**
    * The date formatter.
@@ -49,26 +34,15 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
    *
    * @param \Drupal\cron_service\CronServiceManagerInterface $service_manager
    *   The cron service manager.
-   * @param \Drupal\Core\State\StateInterface $state
-   *   The state service.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
    *   The date formatter.
    */
   public function __construct(
     CronServiceManagerInterface $service_manager,
-    StateInterface $state,
     DateFormatterInterface $date_formatter
   ) {
     $this->cronServiceManager = $service_manager;
-    $this->state = $state;
     $this->dateFormatter = $date_formatter;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function addHandler(CronServiceInterface $service, string $id): void {
-    $this->handlers[$id] = $service;
   }
 
   /**
@@ -106,8 +80,8 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
   protected function buildTableRows(): array {
     $rows = [];
 
-    foreach ($this->handlers as $id => $handler) {
-      $rows[] = $this->buildTableRow($id, $handler);
+    foreach ($this->cronServiceManager->getHandlerIds() as $id) {
+      $rows[] = $this->buildTableRow($id);
     }
 
     return $rows;
@@ -118,23 +92,16 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
    *
    * @param string $id
    *   The service name.
-   * @param \Drupal\cron_service\CronServiceInterface $handler
-   *   The cron service.
    *
    * @return array
    *   A render array.
    */
-  protected function buildServiceNextRun(
-    string $id,
-    CronServiceInterface $handler
-  ): array {
+  protected function buildServiceNextRun(string $id): array {
     $statements = [];
 
-    // @todo Use a method of the cron service manager as soon as it gets one.
-    $is_forced = $this->getValue($id, 'forced', FALSE);
     $scheduled_time = $this->cronServiceManager->getScheduledCronRunTime($id);
 
-    if ($is_forced) {
+    if ($this->cronServiceManager->isForced($id)) {
       $statements[] = [
         '#markup' => $this->t('Forced for the next Cron run'),
       ];
@@ -178,16 +145,11 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
    *
    * @param string $id
    *   The service name.
-   * @param \Drupal\cron_service\CronServiceInterface $handler
-   *   The cron service.
    *
    * @return array
    *   The list of links.
    */
-  protected function buildServiceOperationLinks(
-    string $id,
-    CronServiceInterface $handler
-  ): array {
+  protected function buildServiceOperationLinks(string $id): array {
     $links = [];
 
     $links['force'] = [
@@ -205,17 +167,12 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
    *
    * @param string $id
    *   The service name.
-   * @param \Drupal\cron_service\CronServiceInterface $handler
-   *   The cron service.
    *
    * @return array
    *   A render array.
    */
-  protected function buildServiceOperations(
-    string $id,
-    CronServiceInterface $handler
-  ): array {
-    $links = $this->buildServiceOperationLinks($id, $handler);
+  protected function buildServiceOperations(string $id): array {
+    $links = $this->buildServiceOperationLinks($id);
     if (empty($links)) {
       return [
         '#markup' => '-',
@@ -233,16 +190,11 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
    *
    * @param string $id
    *   The service name.
-   * @param \Drupal\cron_service\CronServiceInterface $handler
-   *   The cron service.
    *
    * @return array
    *   A render array.
    */
-  protected function buildServiceName(
-    string $id,
-    CronServiceInterface $handler
-  ): array {
+  protected function buildServiceName(string $id): array {
     return [
       '#plain_text' => $id,
     ];
@@ -253,41 +205,18 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
    *
    * @param string $id
    *   The service name.
-   * @param \Drupal\cron_service\CronServiceInterface $handler
-   *   The cron service.
    *
    * @return array
    *   A render array.
    */
-  protected function buildTableRow(
-    string $id,
-    CronServiceInterface $handler
-  ): array {
+  protected function buildTableRow(string $id): array {
     $row = [];
 
-    $row['service'] = $this->buildServiceName($id, $handler);
-    $row['next'] = $this->buildServiceNextRun($id, $handler);
-    $row['operations'] = $this->buildServiceOperations($id, $handler);
+    $row['service'] = $this->buildServiceName($id);
+    $row['next'] = $this->buildServiceNextRun($id);
+    $row['operations'] = $this->buildServiceOperations($id);
 
     return $row;
-  }
-
-  /**
-   * Retrieves a Cron Service state value from a persistent storage.
-   *
-   * @param string $id
-   *   Service id.
-   * @param string $name
-   *   Value name.
-   * @param mixed $default
-   *   Default value to return.
-   *
-   * @return mixed
-   *   Value from the storage.
-   */
-  protected function getValue(string $id, string $name, $default = NULL) {
-    $state_name = sprintf('cron_service.cron.%s.%s', $id, $name);
-    return $this->state->get($state_name, $default);
   }
 
 }

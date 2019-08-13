@@ -107,6 +107,11 @@ class CronServiceManagerTest extends UnitTestCase {
       $test_object->addHandler(...$handler);
     }
 
+    self::assertArrayEquals(
+      array_map(function($item){ return $item[1]; }, $handlers),
+      $test_object->getHandlerIds()
+    );
+
     $test_object->expects(self::exactly(count($handlers)))
       ->method('executeHandler')
       ->withConsecutive(
@@ -316,7 +321,9 @@ class CronServiceManagerTest extends UnitTestCase {
 
     $test_object->addHandler($svc, $svc_name);
     self::assertFalse($test_object->shouldRunNow($svc_name));
+    self::assertFalse($test_object->isForced($svc_name));
     $test_object->forceNextExecution($svc_name);
+    self::assertTrue($test_object->isForced($svc_name));
     self::assertTrue($test_object->shouldRunNow($svc_name));
     $test_object->execute();
   }
