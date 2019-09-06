@@ -5,8 +5,8 @@ namespace Drupal\cron_service_ui;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\cron_service\CronServiceInterface;
 use Drupal\cron_service\CronServiceManagerInterface;
+use Drupal\cron_service\TimeControllingCronServiceInterface;
 
 /**
  * Cron service list builder.
@@ -108,25 +108,40 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
 
       if ($scheduled_time) {
         $statements[] = [
-          '#markup' => $this->t('Was scheduled for @time', [
-            '@time' => $this->dateFormatter->format($scheduled_time),
-          ]),
+          '#markup' => $this->t(
+            'Was scheduled for @time',
+            [
+              '@time' => $this->dateFormatter->format($scheduled_time),
+            ]
+          ),
         ];
       }
     }
-    elseif ($scheduled_time) {
-      $statements[] = [
-        '#markup' => $this->t('Scheduled for @time', [
-          '@time' => $this->dateFormatter->format($scheduled_time),
-        ]),
-      ];
-    }
     else {
-      $statements[] = [
-        '#markup' => $this->t('Next Cron run', [
-          '@time' => $this->dateFormatter->format($scheduled_time),
-        ]),
-      ];
+      if ($scheduled_time) {
+        $statements[] = [
+          '#markup' => $this->t(
+            'Scheduled for @time',
+            [
+              '@time' => $this->dateFormatter->format($scheduled_time),
+            ]
+          ),
+        ];
+      }
+      else {
+        $statements[] = [
+          '#markup' => $this->t('Will be executed at next Cron run'),
+        ];
+      }
+      if (\Drupal::getContainer()->get(
+          $id
+        ) instanceof TimeControllingCronServiceInterface) {
+        $statements[] = [
+          '#markup' => $this->t(
+            'The service may not be executed because of its own pre-run checks until its forced'
+          ),
+        ];
+      }
     }
 
     if (count($statements) > 1) {
@@ -154,9 +169,12 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
 
     $links['force'] = [
       'title' => $this->t('Force on next Cron run'),
-      'url' => Url::fromRoute('cron_service_ui.service.force', [
-        'id' => $id,
-      ]),
+      'url' => Url::fromRoute(
+        'cron_service_ui.service.force',
+        [
+          'id' => $id,
+        ]
+      ),
     ];
 
     return $links;

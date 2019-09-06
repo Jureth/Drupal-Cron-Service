@@ -1,0 +1,10 @@
+services:
+  testcron.simple_service:
+    class: Drupal\cron_service_testing\Simple
+    tags: [ { name: cron_service } ]
+  testcron.scheduled:
+    class: Drupal\cron_service_testing\Scheduled
+    tags: [ { name: cron_service } ]
+  testcron.time_controlling:
+    class: Drupal\cron_service_testing\TimeControlling
+    tags: [ { name: cron_service } ]
