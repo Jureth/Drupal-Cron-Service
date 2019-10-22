@@ -4,22 +4,23 @@ namespace Drupal\cron_service_testing;
 
 use Drupal\cron_service\TimeControllingCronServiceInterface;
 
+/**
+ * Service fixture.
+ */
 class TimeControlling implements TimeControllingCronServiceInterface {
 
   /**
-   * This method will be called by CronServiceManager.
+   * {@inheritDoc}
    */
   public function execute() {
     return 'false';
   }
 
   /**
-   * Checks if the service should be executed right now.
-   *
-   * @return bool
-   *   TRUE if service should be executed.
+   * {@inheritDoc}
    */
   public function shouldRunNow(): bool {
     return FALSE;
   }
+
 }

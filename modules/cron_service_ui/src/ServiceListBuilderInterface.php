@@ -2,8 +2,6 @@
 
 namespace Drupal\cron_service_ui;
 
-use Drupal\cron_service\CronServiceInterface;
-
 /**
  * Provides an interface for a cron service list builder.
  */

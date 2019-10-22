@@ -5,16 +5,33 @@ namespace Drupal\Tests\cron_service_ui\Functional;
 use Drupal\Tests\BrowserTestBase;
 
 /**
- * Class ServiceListBuilderTest
+ * Tests for ServiceListBuilder class.
  *
  * @group cron_service_ui
  */
 class ServiceListBuilderTest extends BrowserTestBase {
 
-  protected static $modules = ['cron_service', 'cron_service_ui', 'cron_service_testing'];
+  /**
+   * {@inheritdoc}
+   */
+  protected static $modules = [
+    'cron_service',
+    'cron_service_ui',
+    'cron_service_testing',
+  ];
 
+  /**
+   * Test user.
+   *
+   * @var \Drupal\user\Entity\User|false
+   */
   protected $webUser;
 
+  /**
+   * Test service.
+   *
+   * @var \Drupal\cron_service\CronServiceManager
+   */
   protected $cronManager;
 
   /**
@@ -31,7 +48,10 @@ class ServiceListBuilderTest extends BrowserTestBase {
     $this->cronManager = \Drupal::getContainer()->get('cron_service.manager');
   }
 
-  public function testFormExists() {
+  /**
+   * Checks the page exists and contains services list.
+   */
+  public function testServicesListPageExists() {
     $this->drupalGet('/admin/config/system/cron/services');
     $this->assertSession()->statusCodeEquals(200);
     $this->assertSession()->pageTextContains('service name');
@@ -43,9 +63,11 @@ class ServiceListBuilderTest extends BrowserTestBase {
       'testcron.scheduled',
       'testcron.time_controlling',
     ];
-    foreach($services as $id) {
+    foreach ($services as $id) {
       $this->assertSession()->pageTextContains($id);
-      $this->assertSession()->linkByHrefExists(sprintf('/admin/config/system/cron/services/%s/force', $id));
+      $this->assertSession()->linkByHrefExists(
+        sprintf('/admin/config/system/cron/services/%s/force', $id)
+      );
     }
     $this->drupalLogout();
     $this->drupalGet('/admin/config/system/cron/services');

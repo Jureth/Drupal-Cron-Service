@@ -108,7 +108,12 @@ class CronServiceManagerTest extends UnitTestCase {
     }
 
     self::assertArrayEquals(
-      array_map(function($item){ return $item[1]; }, $handlers),
+      array_map(
+        function ($item) {
+          return $item[1];
+        },
+        $handlers
+      ),
       $test_object->getHandlerIds()
     );
 

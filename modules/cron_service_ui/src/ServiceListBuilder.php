@@ -2,11 +2,10 @@
 
 namespace Drupal\cron_service_ui;
 
-use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\cron_service\CronServiceManagerInterface;
 use Drupal\cron_service\TimeControllingCronServiceInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Cron service list builder.
@@ -30,19 +29,24 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
   protected $dateFormatter;
 
   /**
+   * Service container.
+   *
+   * @var \Symfony\Component\DependencyInjection\ContainerInterface
+   */
+  protected $container;
+
+  /**
    * A constructor.
    *
-   * @param \Drupal\cron_service\CronServiceManagerInterface $service_manager
-   *   The cron service manager.
-   * @param \Drupal\Core\Datetime\DateFormatterInterface $date_formatter
-   *   The date formatter.
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   Service container.
    */
   public function __construct(
-    CronServiceManagerInterface $service_manager,
-    DateFormatterInterface $date_formatter
+    ContainerInterface $container
   ) {
-    $this->cronServiceManager = $service_manager;
-    $this->dateFormatter = $date_formatter;
+    $this->container = $container;
+    $this->cronServiceManager = $container->get('cron_service.manager');
+    $this->dateFormatter = $container->get('date.formatter');
   }
 
   /**
@@ -133,7 +137,7 @@ class ServiceListBuilder implements ServiceListBuilderInterface {
           '#markup' => $this->t('Will be executed at next Cron run'),
         ];
       }
-      if (\Drupal::getContainer()->get(
+      if ($this->container->get(
           $id
         ) instanceof TimeControllingCronServiceInterface) {
         $statements[] = [

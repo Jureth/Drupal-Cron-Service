@@ -2,5 +2,4 @@ services:
   cron_service_ui.list_builder:
     class: 'Drupal\cron_service_ui\ServiceListBuilder'
     arguments:
-      - '@cron_service.manager'
-      - '@date.formatter'
+      - '@service_container'
